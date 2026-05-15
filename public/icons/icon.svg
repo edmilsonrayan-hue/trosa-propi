@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#166534"/>
+      <stop offset="100%" stop-color="#062818"/>
+    </radialGradient>
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e5e7eb"/>
+    </linearGradient>
+  </defs>
+  <!-- Fond rond pour Android maskable, mais on remplit tout pour iOS -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- Trois cartes en éventail -->
+  <g transform="translate(256 280)">
+    <!-- Carte gauche -->
+    <g transform="rotate(-18) translate(-90 -100)">
+      <rect width="140" height="200" rx="20" fill="url(#cardGrad)" stroke="#9ca3af" stroke-width="3"/>
+      <text x="22" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#dc2626">7</text>
+      <text x="22" y="86" font-family="Arial, sans-serif" font-size="32" fill="#dc2626">♥</text>
+      <text x="70" y="125" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#dc2626" text-anchor="middle">♥</text>
+    </g>
+    <!-- Carte centrale -->
+    <g transform="translate(-70 -110)">
+      <rect width="140" height="200" rx="20" fill="url(#cardGrad)" stroke="#9ca3af" stroke-width="3"/>
+      <text x="22" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#111">A</text>
+      <text x="22" y="86" font-family="Arial, sans-serif" font-size="32" fill="#111">♠</text>
+      <text x="70" y="125" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#111" text-anchor="middle">♠</text>
+    </g>
+    <!-- Carte droite -->
+    <g transform="rotate(18) translate(-50 -100)">
+      <rect width="140" height="200" rx="20" fill="url(#cardGrad)" stroke="#9ca3af" stroke-width="3"/>
+      <text x="22" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#111">K</text>
+      <text x="22" y="86" font-family="Arial, sans-serif" font-size="32" fill="#111">♣</text>
+      <text x="70" y="125" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#111" text-anchor="middle">♣</text>
+    </g>
+  </g>
+
+  <!-- Titre en haut -->
+  <text x="256" y="100" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#ffffff" text-anchor="middle">TROSA</text>
+  <text x="256" y="160" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#fbbf24" text-anchor="middle">PROPI</text>
+</svg>
