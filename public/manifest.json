@@ -1,0 +1,19 @@
+{
+  "name": "TROSA PROPI",
+  "short_name": "TROSA PROPI",
+  "description": "Jeu de cartes — solo ou en ligne",
+  "lang": "fr",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#062818",
+  "theme_color": "#166534",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
