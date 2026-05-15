@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>TROSA PROPI</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#166534">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- iOS spécifique -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TROSA PROPI">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ====== MENU PRINCIPAL ====== -->
+<div id="menu" class="menu">
+  <div class="menu-card">
+    <h1>TROSA <span>PROPI</span></h1>
+    <p class="subtitle">Jeu de cartes — solo ou en ligne</p>
+
+    <div class="menu-section">
+      <label>Mode de jeu</label>
+      <select id="menuModeSelect">
+        <option value="1v1">1 vs 1</option>
+        <option value="2v2">2 vs 2</option>
+      </select>
+    </div>
+
+    <div class="menu-section">
+      <label>Ton pseudo (online)</label>
+      <input type="text" id="menuPseudo" maxlength="14" placeholder="Joueur">
+    </div>
+
+    <div class="menu-buttons">
+      <button id="btnSolo" class="primary">Jouer contre les bots</button>
+      <button id="btnCreate">Créer un salon en ligne</button>
+      <div class="join-row">
+        <input type="text" id="joinCode" placeholder="CODE" maxlength="6">
+        <button id="btnJoin">Rejoindre</button>
+      </div>
+    </div>
+
+    <div id="menuStatus" class="menu-status"></div>
+  </div>
+</div>
+
+<!-- ====== LOBBY ONLINE ====== -->
+<div id="lobby" class="menu hidden">
+  <div class="menu-card">
+    <h2>Salon</h2>
+    <div class="room-code-box">
+      Code du salon : <span id="lobbyCode"></span>
+      <button id="btnCopyCode" class="ghost">Copier</button>
+    </div>
+    <p class="subtitle">Partage ce code aux autres joueurs.</p>
+
+    <ul id="lobbyPlayers" class="players-list"></ul>
+
+    <div id="lobbyHostControls" class="hidden">
+      <button id="btnAddBot" class="ghost">Ajouter un bot</button>
+      <button id="btnStartGame" class="primary">Lancer la partie</button>
+    </div>
+    <div id="lobbyWait" class="menu-status"></div>
+    <button id="btnLeaveLobby" class="ghost">Quitter le salon</button>
+  </div>
+</div>
+
+<!-- ====== TABLE DE JEU ====== -->
+<div id="game" class="table hidden">
+  <div class="panel left">
+    <div class="row" style="margin-bottom:8px">
+      <button id="backToMenuBtn" class="ghost">⟵ Menu</button>
+      <button id="newGameBtn">Nouvelle partie</button>
+    </div>
+    <div id="score"></div>
+    <div id="atout"></div>
+    <div id="deckInfo"></div>
+  </div>
+
+  <div class="panel right">
+    <div id="turnInfo"></div>
+    <div id="winnerInfo"></div>
+    <div id="remainingInfo"></div>
+    <div id="finalPointsInfo"></div>
+  </div>
+
+  <div class="seat top">
+    <div id="name2">Bot 2</div>
+    <div id="hand2" class="hand"></div>
+  </div>
+
+  <div class="seat leftSeat">
+    <div id="name1">Bot 1</div>
+    <div id="hand1" class="hand vertical"></div>
+  </div>
+
+  <div class="seat rightSeat">
+    <div id="name3">Bot 3</div>
+    <div id="hand3" class="hand vertical"></div>
+  </div>
+
+  <div class="center">
+    <div class="stack">
+      <div class="trump-holder"><div id="trump" class="trump"></div></div>
+      <div id="deckTop" class="deck"></div>
+    </div>
+
+    <div class="table-cards">
+      <div class="spot spot-top" id="spot2"><div class="label" id="label2">Bot 2</div><div id="played2"></div></div>
+      <div class="spot spot-left" id="spot1"><div class="label" id="label1">Bot 1</div><div id="played1"></div></div>
+      <div class="spot spot-right" id="spot3"><div class="label" id="label3">Bot 3</div><div id="played3"></div></div>
+      <div class="spot spot-bottom" id="spot0"><div class="label" id="label0">Toi</div><div id="played0"></div></div>
+    </div>
+    <div class="message" id="msg"></div>
+  </div>
+
+  <div class="seat bottom">
+    <div id="name0">Toi</div>
+    <div id="hand0" class="hand"></div>
+  </div>
+</div>
+
+<!-- ====== SCRIPTS ====== -->
+<!-- Socket.IO chargé seulement si on est servi par le serveur Node -->
+<script src="/socket.io/socket.io.js" onerror="window.__noServer=true"></script>
+<script src="js/constants.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/local.js"></script>
+<script src="js/online.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
