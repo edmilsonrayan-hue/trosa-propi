@@ -60,6 +60,7 @@ class GameRoom {
     if (idx === -1) return { ok: false };
     this.players.splice(idx, 1);
     if (socketId === this.hostSocketId && this.players.length > 0) {
+      // Promote next non-bot to host
       const newHost = this.players.find(p => !p.isBot);
       if (newHost) this.hostSocketId = newHost.socketId;
     }
@@ -81,54 +82,75 @@ class GameRoom {
     };
   }
 
+  // ====== Partie ======
+
   start() {
     if (this.started) return { ok: false, error: "Déjà démarré." };
     if (this.players.length !== this.maxPlayers) {
       return { ok: false, error: "Il manque des joueurs (ou des bots)." };
     }
+
+    // Assigne les sièges :
+    //   1v1 : seats [0, 2]
+    //   2v2 : seats [0, 3, 2, 1]
     const seats = Rules.activePlayers(this.mode);
     this.players.forEach((p, i) => { p.seat = seats[i]; });
+
+    // Mémoires IA par seat
     this.botMemories = {};
     for (const p of this.players) {
       if (p.isBot) this.botMemories[p.seat] = AI.defaultMemory();
     }
+
+    // Génère le deck
     const deck = Rules.shuffle(Rules.buildDeck());
     const trumpCard = deck.pop();
+
     this.state = {
       mode: this.mode,
       drawPile: deck,
       hands: [[], [], [], []],
       trumpCard, trumpTaken: false,
       teamScores: [0, 0],
+      tricksWon:  [0, 0],
       played: [null, null, null, null],
       gameOver: false,
       leader: 0, turn: 0,
       trickOrder: [],
       history: []
     };
+
+    // Distribution
     for (let r = 0; r < 5; r++) {
       for (const seat of seats) {
         if (this.state.drawPile.length === 0) break;
         this.state.hands[seat].push(this.state.drawPile.shift());
       }
     }
+
     this.started = true;
     return { ok: true };
   }
 
+  /**
+   * Vue partielle pour un joueur (cache la main des autres).
+   */
   publicViewFor(socketId) {
     const me = this.players.find(p => p.socketId === socketId);
     const mySeat = me ? me.seat : null;
     const seatNames = ["", "", "", ""];
     for (const p of this.players) seatNames[p.seat] = p.name;
+
     const hands = [[], [], [], []];
     for (let s = 0; s < 4; s++) {
       if (s === mySeat) {
         hands[s] = this.state.hands[s];
       } else {
+        // On ne révèle que le NOMBRE de cartes, pas leur identité
         hands[s] = this.state.hands[s].map(() => ({ hidden: true }));
       }
     }
+
     return {
       mySeat,
       seatNames,
@@ -139,6 +161,7 @@ class GameRoom {
       trumpCard: this.state.trumpCard,
       trumpTaken: this.state.trumpTaken,
       teamScores: this.state.teamScores,
+      tricksWon:  this.state.tricksWon,
       played: this.state.played,
       trickOrder: this.state.trickOrder,
       gameOver: this.state.gameOver,
@@ -149,6 +172,9 @@ class GameRoom {
     };
   }
 
+  /**
+   * Diffuse l'état à chaque joueur humain (chacun reçoit sa vue).
+   */
   pushState(broadcastToSocket) {
     for (const p of this.players) {
       if (p.isBot) continue;
@@ -157,10 +183,15 @@ class GameRoom {
     }
   }
 
+  // Utilitaire : seat -> player
   playerAtSeat(seat) {
     return this.players.find(p => p.seat === seat);
   }
 
+  /**
+   * Tente de jouer la carte d'index `idx` depuis la main du seat `seat`.
+   * Vérifie que c'est bien le tour du joueur.
+   */
   tryPlay(seat, idx) {
     if (!this.started || this.state.gameOver) {
       return { ok: false, error: "Partie pas en cours." };
@@ -175,8 +206,10 @@ class GameRoom {
     const card = hand.splice(idx, 1)[0];
     this.state.played[seat] = card;
     this.state.trickOrder.push(seat);
+
     const need = Rules.activePlayers(this.state.mode).length;
     let trickResolved = null;
+
     if (this.state.trickOrder.length >= need) {
       const winner = Rules.winnerOfTrick(
         this.state.trickOrder, this.state.played, this.state.trumpCard.s
@@ -184,23 +217,35 @@ class GameRoom {
       const total = Rules.activePlayers(this.state.mode).reduce(
         (s, p) => s + (this.state.played[p] ? this.state.played[p].p : 0), 0
       );
-      this.state.teamScores[Rules.teamOf(winner, this.state.mode)] += total;
+      const team = Rules.teamOf(winner, this.state.mode);
+      this.state.teamScores[team] += total;
+      this.state.tricksWon[team] += 1;
+
       this.state.history.push({
         winner,
         cards: Rules.activePlayers(this.state.mode).map(p => this.state.played[p])
       });
+
       trickResolved = { winner, total };
     } else {
       this.state.turn = Rules.nextPlayer(this.state.turn, this.state.mode);
     }
+
     return { ok: true, trickResolved, played: { seat, card } };
   }
 
+  /**
+   * Résout un pli déjà composé : les joueurs piochent et le tour reprend.
+   * Doit être appelé APRÈS l'animation côté client.
+   */
   resolveAfterTrick(winner) {
+    // Vide les cartes posées
     this.state.played = [null, null, null, null];
     this.state.trickOrder = [];
     this.state.leader = winner;
     this.state.turn = winner;
+
+    // Pioche : gagnant en premier
     let p = winner;
     for (let step = 0; step < Rules.activePlayers(this.state.mode).length; step++) {
       if (this.state.drawPile.length > 0) {
@@ -211,6 +256,8 @@ class GameRoom {
       }
       p = Rules.nextPlayer(p, this.state.mode);
     }
+
+    // Fin de partie ?
     const active = Rules.activePlayers(this.state.mode);
     if (active.every(s => this.state.hands[s].length === 0)
         && this.state.drawPile.length === 0 && this.state.trumpTaken) {
@@ -218,6 +265,10 @@ class GameRoom {
     }
   }
 
+  /**
+   * Si le tour est à un bot, calcule son coup et l'applique.
+   * Retourne le coup joué (ou null).
+   */
   botMove() {
     if (!this.started || this.state.gameOver) return null;
     const seat = this.state.turn;
