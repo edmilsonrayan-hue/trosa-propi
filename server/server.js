@@ -4,7 +4,7 @@
    Lancer avec :
      npm install
      npm start
-   Le serveur Ã©coute sur PORT (env) ou 3000.
+   Le serveur écoute sur PORT (env) ou 3000.
    ============================================================ */
 
 const path    = require("path");
@@ -57,7 +57,7 @@ function pushState(room) {
 
 /**
  * Boucle de bots : tant que c'est au tour d'un bot, joue.
- * DÃ©lais simulÃ©s pour rendre le jeu agrÃ©able.
+ * Délais simulés pour rendre le jeu agréable.
  */
 async function runBotsUntilHuman(room) {
   while (room.needsBotMove() && !room.state.gameOver) {
@@ -100,7 +100,7 @@ io.on("connection", (socket) => {
     code = (code || "").toUpperCase().trim();
     const room = rooms.get(code);
     if (!room) return cb && cb({ ok: false, error: "Salon introuvable." });
-    if (room.started) return cb && cb({ ok: false, error: "Partie dÃ©jÃ  commencÃ©e." });
+    if (room.started) return cb && cb({ ok: false, error: "Partie déjà commencée." });
     const r = room.addPlayer(socket.id, name || "Joueur");
     if (!r.ok) return cb && cb(r);
     userToRoom.set(socket.id, code);
@@ -113,7 +113,7 @@ io.on("connection", (socket) => {
     const code = userToRoom.get(socket.id);
     const room = code && rooms.get(code);
     if (!room) return cb && cb({ ok: false, error: "Pas dans un salon." });
-    if (socket.id !== room.hostSocketId) return cb && cb({ ok: false, error: "HÃ´te uniquement." });
+    if (socket.id !== room.hostSocketId) return cb && cb({ ok: false, error: "Hôte uniquement." });
     const r = room.addBot();
     cb && cb(r);
     broadcastLobby(room);
@@ -123,13 +123,13 @@ io.on("connection", (socket) => {
     const code = userToRoom.get(socket.id);
     const room = code && rooms.get(code);
     if (!room) return cb && cb({ ok: false, error: "Pas dans un salon." });
-    if (socket.id !== room.hostSocketId) return cb && cb({ ok: false, error: "HÃ´te uniquement." });
+    if (socket.id !== room.hostSocketId) return cb && cb({ ok: false, error: "Hôte uniquement." });
     const r = room.start();
     if (!r.ok) return cb && cb(r);
     cb && cb({ ok: true });
     io.to("room:" + code).emit("gameStarted", { mode: room.mode });
     pushState(room);
-    // Si c'est Ã  un bot, joue tout de suite
+    // Si c'est à un bot, joue tout de suite
     runBotsUntilHuman(room).catch(e => console.error(e));
   });
 
@@ -158,7 +158,7 @@ io.on("connection", (socket) => {
       io.to("room:" + code).emit("nextTurn", { turn: room.state.turn });
     }
 
-    // EnchaÃ®ne les bots
+    // Enchaîne les bots
     runBotsUntilHuman(room).catch(e => console.error(e));
   });
 
@@ -168,7 +168,7 @@ io.on("connection", (socket) => {
     if (!room) return;
     const me = room.players.find(p => p.socketId === socket.id);
     if (!me || me.seat === undefined) return;
-    // Limite simple : 1 char emoji (en pratique : on accepte n'importe quelle chaÃ®ne courte)
+    // Limite simple : 1 char emoji (en pratique : on accepte n'importe quelle chaîne courte)
     const safe = String(emoji || "").slice(0, 6);
     if (!safe) return;
     io.to("room:" + code).emit("reaction", { seat: me.seat, emoji: safe });
@@ -201,5 +201,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`TROSA PROPI server Ã©coute sur :${PORT}`);
+  console.log(`TROSA PROPI server écoute sur :${PORT}`);
 });
