@@ -176,7 +176,8 @@ io.on("connection", (socket) => {
     io.to("room:" + code).emit("reaction", { seat: me.seat, emoji: safe });
   });
 
-  socket.on("leaveRoom", (_, cb) => {
+    socket.on("chat", ({ name, text }) => { const code = userToRoom.get(socket.id); if (!code) return; const safeText = String(text || "").slice(0, 80).trim(); const safeName = String(name || "Joueur").slice(0, 14); if (!safeText) return; socket.to("room:" + code).emit("chat", { name: safeName, text: safeText }); });
+   socket.on("leaveRoom", (_, cb) => {
     leaveRoom(socket);
     cb && cb({ ok: true });
   });
