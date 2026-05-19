@@ -1,6 +1,6 @@
-/* TROSA PROPI - Service Worker */
+/* TROSA PROPI - Service Worker (network-first pour auto-update) */
 
-const CACHE_NAME = "trosa-propi-v1";
+const CACHE_NAME = "trosa-propi-v3";
 const STATIC_ASSETS = [
   "/", "/index.html", "/css/style.css",
   "/js/constants.js", "/js/rules.js", "/js/ai.js",
@@ -23,22 +23,21 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Network-first : on tente toujours le réseau d'abord, fallback cache hors-ligne
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.pathname.startsWith("/socket.io")) return;
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    fetch(event.request).then((resp) => {
+      if (resp && resp.status === 200 && resp.type === "basic") {
+        const clone = resp.clone();
+        caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+      }
+      return resp;
+    }).catch(() => caches.match(event.request).then(cached => {
       if (cached) return cached;
-      return fetch(event.request).then((resp) => {
-        if (resp && resp.status === 200 && resp.type === "basic") {
-          const clone = resp.clone();
-          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-        }
-        return resp;
-      }).catch(() => {
-        if (event.request.mode === "navigate") return caches.match("/index.html");
-      });
-    })
+      if (event.request.mode === "navigate") return caches.match("/index.html");
+    }))
   );
 });
