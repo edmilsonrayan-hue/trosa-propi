@@ -61,7 +61,7 @@ function pushState(room) {
  */
 async function runBotsUntilHuman(room) {
   while (room.needsBotMove() && !room.state.gameOver) {
-    await new Promise(r => setTimeout(r, 1300));
+    await new Promise(r => setTimeout(r, 2000));
     const result = room.botMove();
     if (!result || !result.ok) break;
     io.to("room:" + room.code).emit("played", {
