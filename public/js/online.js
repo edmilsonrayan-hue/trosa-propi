@@ -20,7 +20,8 @@ const OnlineGame = (function () {
       throw new Error("Socket.IO non disponible — sers le jeu via le serveur Node.");
     }
     socket = io();
-    bindSocketEvents();
+        window.__sock = socket;
+     bindSocketEvents();
     return socket;
   }
 
