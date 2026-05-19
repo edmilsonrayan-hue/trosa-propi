@@ -61,7 +61,7 @@ function pushState(room) {
  */
 async function runBotsUntilHuman(room) {
   while (room.needsBotMove() && !room.state.gameOver) {
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 1300));
     const result = room.botMove();
     if (!result || !result.ok) break;
     io.to("room:" + room.code).emit("played", {
@@ -72,8 +72,8 @@ async function runBotsUntilHuman(room) {
 
     if (result.trickResolved) {
       io.to("room:" + room.code).emit("trickResolved", result.trickResolved);
-      // Pause pour l'animation de collecte
-      await new Promise(r => setTimeout(r, 2000));
+      // Pause pour voir toutes les cartes avant le ramassage
+      await new Promise(r => setTimeout(r, 3500));
       room.resolveAfterTrick(result.trickResolved.winner);
       pushState(room);
       io.to("room:" + room.code).emit("nextTurn", { turn: room.state.turn });
@@ -152,7 +152,7 @@ io.on("connection", (socket) => {
 
     if (result.trickResolved) {
       io.to("room:" + code).emit("trickResolved", result.trickResolved);
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise(r => setTimeout(r, 3500));
       room.resolveAfterTrick(result.trickResolved.winner);
       pushState(room);
       io.to("room:" + code).emit("nextTurn", { turn: room.state.turn });
